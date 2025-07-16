@@ -5,7 +5,7 @@ import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function Home() {
   const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState('');
+  const [accessToken, setAccessToken] = useState(''); //test
   const [siteUrl, setSiteUrl] = useState('');
   const [gscData, setGscData] = useState(null);
 
