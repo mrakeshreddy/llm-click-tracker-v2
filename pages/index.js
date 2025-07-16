@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { auth, provider } from '../firebase';
 import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function Home() {
   const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState(''); //test
+  const [accessToken, setAccessToken] = useState('');
   const [siteUrl, setSiteUrl] = useState('');
   const [gscData, setGscData] = useState(null);
 
@@ -55,8 +54,22 @@ export default function Home() {
     }
   };
 
+  const thStyle = {
+    padding: '10px',
+    textAlign: 'left',
+    fontWeight: 'bold',
+    borderBottom: '1px solid #ddd',
+    background: '#f9f9f9'
+  };
+
+  const tdStyle = {
+    padding: '10px',
+    borderBottom: '1px solid #eee',
+    fontSize: '14px'
+  };
+
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', fontFamily: 'Arial', maxWidth: '800px', margin: '0 auto' }}>
       <h1>LLM Click Tracker</h1>
 
       {!user ? (
@@ -95,10 +108,33 @@ export default function Home() {
         <button onClick={handleFetchGSCData}>Fetch GSC Data</button>
       </div>
 
-      {gscData && (
-        <div style={{ marginTop: '2rem', background: '#f6f6f6', padding: '1rem', borderRadius: '5px' }}>
-          <h3>GSC Data:</h3>
-          <pre>{JSON.stringify(gscData, null, 2)}</pre>
+      {gscData?.rows?.length > 0 && (
+        <div style={{ marginTop: '2rem' }}>
+          <h3>Search Analytics</h3>
+          <div style={{ overflowX: 'auto', maxHeight: '400px', border: '1px solid #ccc', borderRadius: '6px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Query</th>
+                  <th style={thStyle}>Clicks</th>
+                  <th style={thStyle}>Impressions</th>
+                  <th style={thStyle}>CTR (%)</th>
+                  <th style={thStyle}>Position</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gscData.rows.map((row, idx) => (
+                  <tr key={idx}>
+                    <td style={tdStyle}>{row.keys?.[0] || '-'}</td>
+                    <td style={tdStyle}>{row.clicks}</td>
+                    <td style={tdStyle}>{row.impressions}</td>
+                    <td style={tdStyle}>{(row.ctr * 100).toFixed(2)}</td>
+                    <td style={tdStyle}>{row.position.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
