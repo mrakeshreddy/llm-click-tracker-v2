@@ -6,6 +6,8 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState('');
   const [siteUrl, setSiteUrl] = useState('');
+  const [startDate, setStartDate] = useState('2024-07-01');
+  const [endDate, setEndDate] = useState('2024-07-15');
   const [gscData, setGscData] = useState(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function Home() {
 
   const handleFetchGSCData = async () => {
     if (!accessToken || !siteUrl) {
-      alert("Please fill in both Access Token and Site URL");
+      alert("Please fill in all required fields");
       return;
     }
 
@@ -41,17 +43,41 @@ export default function Home() {
         body: JSON.stringify({
           access_token: accessToken,
           siteUrl: siteUrl,
-          startDate: "2024-07-01",
-          endDate: "2024-07-15"
+          startDate,
+          endDate
         })
       });
 
       const data = await response.json();
       setGscData(data);
-      console.log("GSC Data", data);
     } catch (err) {
       console.error("Fetch GSC Data Error", err);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (!gscData?.rows?.length) return;
+
+    const headers = ['Query', 'Clicks', 'Impressions', 'CTR (%)', 'Position'];
+    const rows = gscData.rows.map(row => [
+      row.keys?.[0] || '-',
+      row.clicks,
+      row.impressions,
+      (row.ctr * 100).toFixed(2),
+      row.position.toFixed(2)
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(e => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "gsc_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const thStyle = {
@@ -69,7 +95,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', fontFamily: 'Arial', maxWidth: '1000px', margin: '0 auto' }}>
       <h1>LLM Click Tracker</h1>
 
       {!user ? (
@@ -105,7 +131,30 @@ export default function Home() {
           />
         </label>
 
-        <button onClick={handleFetchGSCData}>Fetch GSC Data</button>
+        <label>
+          Start Date:
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            style={{ marginRight: '1rem', padding: '0.5rem' }}
+          />
+        </label>
+
+        <label>
+          End Date:
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            style={{ padding: '0.5rem' }}
+          />
+        </label>
+
+        <div style={{ marginTop: '1rem' }}>
+          <button onClick={handleFetchGSCData} style={{ marginRight: '1rem' }}>Fetch GSC Data</button>
+          <button onClick={handleExportCSV}>Export to CSV</button>
+        </div>
       </div>
 
       {gscData?.rows?.length > 0 && (
